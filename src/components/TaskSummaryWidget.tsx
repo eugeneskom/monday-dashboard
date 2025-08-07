@@ -91,72 +91,74 @@ const TaskSummaryWidget = ({ boards }: Props) => {
   const completedTasks = summary.done + summary.stopped;
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-4 sm:mb-6">
-      <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-3 sm:mb-4">📊 Project Overview</h3>
+    <div className="bg-white rounded-lg shadow-md p-3 sm:p-4 mb-4">
+      <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-2 sm:mb-3 flex items-center">
+        📊 Project Overview
+      </h3>
       
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
-        <div className="bg-blue-50 p-3 sm:p-4 rounded-lg text-center">
-          <div className="text-xl sm:text-2xl font-bold text-blue-600">{summary.total}</div>
-          <div className="text-blue-700 text-xs sm:text-sm">Total Tasks</div>
+      {/* Compact Summary Cards */}
+      <div className="grid grid-cols-4 gap-2 sm:gap-3 mb-3 sm:mb-4">
+        <div className="bg-blue-50 p-2 sm:p-3 rounded text-center">
+          <div className="text-lg sm:text-xl font-bold text-blue-600">{summary.total}</div>
+          <div className="text-blue-700 text-xs">Total</div>
         </div>
-        <div className="bg-orange-50 p-3 sm:p-4 rounded-lg text-center">
-          <div className="text-xl sm:text-2xl font-bold text-orange-600">{activeWorkload}</div>
-          <div className="text-orange-700 text-xs sm:text-sm">Active Workload</div>
-          <div className="text-orange-600 text-xs hidden sm:block">(In Progress + Need Review)</div>
+        <div className="bg-orange-50 p-2 sm:p-3 rounded text-center">
+          <div className="text-lg sm:text-xl font-bold text-orange-600">{activeWorkload}</div>
+          <div className="text-orange-700 text-xs">Active</div>
         </div>
-        <div className="bg-green-50 p-3 sm:p-4 rounded-lg text-center">
-          <div className="text-xl sm:text-2xl font-bold text-green-600">{completedTasks}</div>
-          <div className="text-green-700 text-xs sm:text-sm">Completed</div>
-          <div className="text-green-600 text-xs hidden sm:block">(Done + Stopped)</div>
+        <div className="bg-green-50 p-2 sm:p-3 rounded text-center">
+          <div className="text-lg sm:text-xl font-bold text-green-600">{completedTasks}</div>
+          <div className="text-green-700 text-xs">Complete</div>
         </div>
-        <div className="bg-purple-50 p-3 sm:p-4 rounded-lg text-center">
-          <div className="text-xl sm:text-2xl font-bold text-purple-600">
+        <div className="bg-purple-50 p-2 sm:p-3 rounded text-center">
+          <div className="text-lg sm:text-xl font-bold text-purple-600">
             {summary.total > 0 ? Math.round((completedTasks / summary.total) * 100) : 0}%
           </div>
-          <div className="text-purple-700 text-xs sm:text-sm">Completion Rate</div>
+          <div className="text-purple-700 text-xs">Rate</div>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3 text-xs sm:text-sm">
-        <div className="bg-yellow-50 p-2 sm:p-3 rounded border-l-4 border-yellow-400">
-          <div className="font-semibold text-yellow-700">In Progress</div>
-          <div className="text-yellow-600">{summary.inProgress}</div>
+      {/* Compact Status Breakdown */}
+      <div className="grid grid-cols-5 sm:grid-cols-10 gap-1 sm:gap-2 text-xs">
+        <div className="bg-yellow-50 p-1 sm:p-2 rounded text-center border-l-2 border-yellow-400">
+          <div className="font-semibold text-yellow-700 truncate">Progress</div>
+          <div className="text-yellow-600 font-bold">{summary.inProgress}</div>
         </div>
-        <div className="bg-orange-50 p-2 sm:p-3 rounded border-l-4 border-orange-400">
-          <div className="font-semibold text-orange-700">Need Review</div>
-          <div className="text-orange-600">{summary.needReview}</div>
+        <div className="bg-orange-50 p-1 sm:p-2 rounded text-center border-l-2 border-orange-400">
+          <div className="font-semibold text-orange-700 truncate">Review</div>
+          <div className="text-orange-600 font-bold">{summary.needReview}</div>
         </div>
-        <div className="bg-blue-50 p-2 sm:p-3 rounded border-l-4 border-blue-400">
-          <div className="font-semibold text-blue-700">Lead Feedback</div>
-          <div className="text-blue-600">{summary.leadFeedback}</div>
+        <div className="bg-blue-50 p-1 sm:p-2 rounded text-center border-l-2 border-blue-400">
+          <div className="font-semibold text-blue-700 truncate">Lead FB</div>
+          <div className="text-blue-600 font-bold">{summary.leadFeedback}</div>
         </div>
-        <div className="bg-indigo-50 p-2 sm:p-3 rounded border-l-4 border-indigo-400">
-          <div className="font-semibold text-indigo-700">To Pack</div>
-          <div className="text-indigo-600">{summary.toPack}</div>
+        <div className="bg-indigo-50 p-1 sm:p-2 rounded text-center border-l-2 border-indigo-400">
+          <div className="font-semibold text-indigo-700 truncate">Pack</div>
+          <div className="text-indigo-600 font-bold">{summary.toPack}</div>
         </div>
-        <div className="bg-cyan-50 p-2 sm:p-3 rounded border-l-4 border-cyan-400">
-          <div className="font-semibold text-cyan-700">Sent</div>
-          <div className="text-cyan-600">{summary.sent}</div>
+        <div className="bg-cyan-50 p-1 sm:p-2 rounded text-center border-l-2 border-cyan-400">
+          <div className="font-semibold text-cyan-700 truncate">Sent</div>
+          <div className="text-cyan-600 font-bold">{summary.sent}</div>
         </div>
-        <div className="bg-teal-50 p-2 sm:p-3 rounded border-l-4 border-teal-400">
-          <div className="font-semibold text-teal-700">Client Feedback</div>
-          <div className="text-teal-600">{summary.clientFeedback}</div>
+        <div className="bg-teal-50 p-1 sm:p-2 rounded text-center border-l-2 border-teal-400">
+          <div className="font-semibold text-teal-700 truncate">Client FB</div>
+          <div className="text-teal-600 font-bold">{summary.clientFeedback}</div>
         </div>
-        <div className="bg-emerald-50 p-2 sm:p-3 rounded border-l-4 border-emerald-400">
-          <div className="font-semibold text-emerald-700">Ready for Client</div>
-          <div className="text-emerald-600">{summary.readyForClient}</div>
+        <div className="bg-emerald-50 p-1 sm:p-2 rounded text-center border-l-2 border-emerald-400">
+          <div className="font-semibold text-emerald-700 truncate">Ready</div>
+          <div className="text-emerald-600 font-bold">{summary.readyForClient}</div>
         </div>
-        <div className="bg-gray-50 p-2 sm:p-3 rounded border-l-4 border-gray-400">
-          <div className="font-semibold text-gray-700">Paused</div>
-          <div className="text-gray-600">{summary.paused}</div>
+        <div className="bg-gray-50 p-1 sm:p-2 rounded text-center border-l-2 border-gray-400">
+          <div className="font-semibold text-gray-700 truncate">Paused</div>
+          <div className="text-gray-600 font-bold">{summary.paused}</div>
         </div>
-        <div className="bg-green-50 p-2 sm:p-3 rounded border-l-4 border-green-400">
-          <div className="font-semibold text-green-700">Done</div>
-          <div className="text-green-600">{summary.done}</div>
+        <div className="bg-green-50 p-1 sm:p-2 rounded text-center border-l-2 border-green-400">
+          <div className="font-semibold text-green-700 truncate">Done</div>
+          <div className="text-green-600 font-bold">{summary.done}</div>
         </div>
-        <div className="bg-red-50 p-2 sm:p-3 rounded border-l-4 border-red-400">
-          <div className="font-semibold text-red-700">Stopped</div>
-          <div className="text-red-600">{summary.stopped}</div>
+        <div className="bg-red-50 p-1 sm:p-2 rounded text-center border-l-2 border-red-400">
+          <div className="font-semibold text-red-700 truncate">Stopped</div>
+          <div className="text-red-600 font-bold">{summary.stopped}</div>
         </div>
       </div>
     </div>
