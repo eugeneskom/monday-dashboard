@@ -25,19 +25,29 @@ interface TaskSummaryWidgetProps {
 
 // Constants
 const STATUS_COLORS: Record<string, string> = {
-  // Exact matches from your screenshot
-  'In Progress': 'border-l-4 border-yellow-500 bg-yellow-50',
+  // Exact matches from your console log (ALL CAPS)
+  'DONE': 'border-l-4 border-green-600 bg-green-100',
+  'IN PROGRESS': 'border-l-4 border-yellow-500 bg-yellow-50',
+  'WAITING FOR MATERIALS': 'border-l-4 border-blue-500 bg-blue-50',
+  'READY FOR CLIENT': 'border-l-4 border-green-500 bg-green-50',
+  'TO DO': 'border-l-4 border-gray-400 bg-gray-50',
+  
+  // Lowercase versions (from individual item processing)
+  'done': 'border-l-4 border-green-600 bg-green-100',
+  'in progress': 'border-l-4 border-yellow-500 bg-yellow-50',
+  'waiting for materials': 'border-l-4 border-blue-500 bg-blue-50',
+  'ready for client': 'border-l-4 border-green-500 bg-green-50',
+  'to do': 'border-l-4 border-gray-400 bg-gray-50',
+  'not set': 'border-l-4 border-gray-300 bg-gray-100',
+  
+  // Additional status variations from your original screenshot
   'Need Review': 'border-l-4 border-orange-500 bg-orange-50',
   'Lead Feedback': 'border-l-4 border-blue-500 bg-blue-50',
   'To Pack': 'border-l-4 border-purple-500 bg-purple-50',
   'Sent': 'border-l-4 border-cyan-500 bg-cyan-50',
   'Client Feedback': 'border-l-4 border-teal-500 bg-teal-50',
-  'Ready for Client': 'border-l-4 border-green-500 bg-green-50',
   'Paused': 'border-l-4 border-gray-500 bg-gray-50',
-  'Done': 'border-l-4 border-green-600 bg-green-100',
   'Stopped': 'border-l-4 border-red-500 bg-red-50',
-  
-  // Alternative variations
   'Working on it': 'border-l-4 border-yellow-500 bg-yellow-50',
   'Stuck': 'border-l-4 border-red-400 bg-red-50',
   'Not Started': 'border-l-4 border-gray-400 bg-gray-50',
@@ -175,9 +185,6 @@ export default function TaskSummaryWidget({
       if (STATUS_COLORS[status]) {
         return STATUS_COLORS[status];
       }
-      
-      // Debug: log the actual status names
-      console.log('Status from data:', `"${status}"`, 'Available keys:', Object.keys(STATUS_COLORS));
       
       // Trim whitespace and try again
       const trimmedStatus = status.trim();
