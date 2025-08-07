@@ -1,4 +1,4 @@
-const MONDAY_API_URL = 'https://api.monday.com/v2';
+const MONDAY_API_URL = 'https://api.monday.com/v3';
 
 interface MondayResponse<T> {
   data: T;

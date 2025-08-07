@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
     const { query, variables } = await request.json();
 
     const mondayAPI = createMondayAPI();
-    const response = await fetch('https://api.monday.com/v2', {
+    const response = await fetch('https://api.monday.com/v3', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
