@@ -1,75 +1,137 @@
-# Monday.com App Setup Instructions
+# Live Team Dashboard - Monday.com App Setup
 
-## 1. Register Your App with Monday.com
+## Overview
+A real-time employee workload and payment calculation dashboard for Monday.com boards. The app is deployed on Vercel and provides live updates through webhooks.
 
-1. Go to [Monday.com Developers Portal](https://monday.com/developers)
-2. Sign in with your Monday.com account
-3. Click "Create App" 
-4. Fill in the app details:
-   - **App Name**: Monday Dashboard
-   - **Description**: A dashboard for managing Monday.com boards
-   - **App URL**: Your public URL (see step 2 below)
-   - **Redirect URI**: Your public URL + `/auth/callback`
+## 🚀 Production Deployment (Current Setup)
 
-## 2. Set Up Public URL for Development
+### App URLs
+- **Production App**: `https://monday-dashboard-mnoceabni-eugeneskoms-projects.vercel.app`
+- **Repository**: `https://github.com/eugeneskom/monday-dashboard`
+- **Platform**: Vercel (auto-deploys from main branch)
 
-Since Monday.com needs to access your app via HTTPS, you'll need to expose your local development server:
+## 1. Monday.com App Configuration
 
-### Option A: Using ngrok (Recommended)
-```bash
-# Install ngrok if you haven't already
-npm install -g ngrok
+### App Details
+- **App Name**: Live Team Dashboard
+- **Description**: Real-time employee workload and payment calculations from Monday.com boards
+- **App URL**: `https://monday-dashboard-mnoceabni-eugeneskoms-projects.vercel.app`
+- **Redirect URI**: `https://monday-dashboard-mnoceabni-eugeneskoms-projects.vercel.app/auth/callback`
 
-# Start your Next.js app
-npm run dev
-
-# In another terminal, expose your local server
-ngrok http 3001
+### Required Credentials
+```
+Client ID: 5d265acf26737f438fd1626cfb668ad0
+Client Secret: c4fa3541afaacd14d0514939edc88e88
+API Token: [Your Monday.com API token]
 ```
 
-### Option B: Using localtunnel
+## 2. Environment Variables (Vercel)
+
+The following environment variables are configured in Vercel:
+
 ```bash
-# Install localtunnel
-npm install -g localtunnel
-
-# Start your Next.js app
-npm run dev
-
-# In another terminal, expose your local server
-lt --port 3001 --subdomain your-app-name
+MONDAY_CLIENT_ID=5d265acf26737f438fd1626cfb668ad0
+MONDAY_CLIENT_SECRET=c4fa3541afaacd14d0514939edc88e88
+MONDAY_API_TOKEN=[Your API token]
+NEXT_PUBLIC_APP_URL=https://monday-dashboard-mnoceabni-eugeneskoms-projects.vercel.app
 ```
 
-## 3. Configure Environment Variables
+## 3. Features
 
-1. Copy `.env.example` to `.env.local`
-2. Fill in the values from your Monday.com app registration:
-   - `MONDAY_CLIENT_ID`: From your app settings
-   - `MONDAY_CLIENT_SECRET`: From your app settings  
-   - `NEXT_PUBLIC_APP_URL`: Your ngrok/localtunnel URL
-   - `MONDAY_API_TOKEN`: Generate from Monday.com > Admin > API
+### ✅ Implemented
+- **Real-time Dashboard**: Employee workload analysis with live updates
+- **Payment Calculations**: Additional payment tracking based on task completion
+- **Board Integration**: Connect multiple Monday.com boards
+- **Live Updates**: Webhook-based real-time data synchronization
+- **Mobile Responsive**: Works on all devices
+- **Employee Management**: Dynamic salary management system
 
-## 4. Update App URLs in Monday.com
+### 📊 Dashboard Tabs
+1. **Employee Workload**: Real-time task breakdown by status and employee
+2. **Additional Payments**: Payment calculations based on completed tasks
+3. **Monday.com Employees**: Employee data import and management
 
-In your Monday.com app settings, update:
-- **App URL**: `https://your-ngrok-url.ngrok.io`
-- **Redirect URI**: `https://your-ngrok-url.ngrok.io/auth/callback`
+## 4. How to Use
 
-## 5. Install Your App
+### For Board Integration
+1. Add the app as a widget to any Monday.com board
+2. Select boards to analyze
+3. View real-time employee workload data
+4. Monitor task progress and completion rates
 
-1. In Monday.com, go to your workspace
-2. Click the "+" button to add an integration
-3. Find your app in "My Apps" section
-4. Install it to a board or dashboard
+### For Standalone Use
+1. Visit: `https://monday-dashboard-mnoceabni-eugeneskoms-projects.vercel.app`
+2. Select boards from your Monday.com workspace
+3. Navigate between dashboard tabs
+4. View live data updates automatically
 
-## 6. Testing
+## 5. Development Setup (Local)
 
-Once configured, your app should:
-- Load inside Monday.com iframe
-- Receive context events via `monday.listen('context')`
-- Have access to Monday.com data and APIs
+### Prerequisites
+```bash
+Node.js 18+
+Git
+Monday.com account with API access
+```
 
-## Troubleshooting
+### Local Installation
+```bash
+# Clone repository
+git clone https://github.com/eugeneskom/monday-dashboard.git
+cd monday-dashboard
 
-- **No console logs**: App must be accessed through Monday.com, not directly
-- **CORS errors**: Check your CSP headers in next.config.ts
-- **Authentication issues**: Verify client ID/secret and redirect URI match
+# Install dependencies
+npm install
+
+# Configure environment variables
+cp .env.local.example .env.local
+# Edit .env.local with your credentials
+
+# Start development server
+npm run dev
+```
+
+### Local Environment Variables
+```bash
+MONDAY_CLIENT_ID=5d265acf26737f438fd1626cfb668ad0
+MONDAY_CLIENT_SECRET=c4fa3541afaacd14d0514939edc88e88
+MONDAY_API_TOKEN=[Your API token]
+NEXT_PUBLIC_APP_URL=http://localhost:3002
+MONDAY_API_URL=https://api.monday.com/v2
+```
+
+## 6. Deployment
+
+### Automatic Deployment
+- **Platform**: Vercel
+- **Trigger**: Push to `main` branch
+- **Build Command**: `npm run build`
+- **Output Directory**: `.next`
+
+### Manual Deployment
+```bash
+# Using Vercel CLI
+npx vercel --prod
+```
+
+## 7. Troubleshooting
+
+### Common Issues
+- **API Errors**: Verify Monday.com API token has required permissions
+- **Widget Not Loading**: Check if app URL is correctly configured in Monday.com
+- **No Live Updates**: Ensure webhook endpoints are accessible
+- **Permission Errors**: Verify app has access to selected boards
+
+### Support
+- Check browser console for detailed error messages
+- Verify environment variables are properly set in Vercel
+- Ensure Monday.com app configuration matches deployment URLs
+
+## 8. Technical Stack
+
+- **Frontend**: Next.js 15.4.5 with React
+- **Styling**: Tailwind CSS (mobile-first responsive design)
+- **Data Fetching**: SWR with Monday.com GraphQL API v2
+- **Real-time Updates**: Server-Sent Events with webhook integration
+- **Deployment**: Vercel with automatic GitHub integration
+- **State Management**: React hooks with localStorage persistence

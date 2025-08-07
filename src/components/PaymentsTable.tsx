@@ -1,11 +1,26 @@
-import React, { useState, useEffect, useMemo } from 'react';
+'use client';
+
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Board } from '@/types/monday';
 
-interface Props {
+// Types
+interface PaymentData {
+  salary: number;
+  hoursSpent: number;
+  rate: number;
+  additionalPayment: number;
+}
+
+interface PaymentsTableProps {
   boards: Board[];
 }
 
-// Default salaries (fallback)
+interface EmployeeSalary {
+  name: string;
+  salary: number;
+}
+
+// Constants
 const DEFAULT_SALARIES: Record<string, number> = {
   'Kateryna Mokhova': 500,
   'Ira Skoryk': 1000,
@@ -15,6 +30,10 @@ const DEFAULT_SALARIES: Record<string, number> = {
   'Дьоміна': 1500,
 };
 
+const STANDARD_WORKING_HOURS = 160; // Monthly working hours
+const STORAGE_KEY = 'employeeSalaries';
+
+// Utility functions
 const parseTimeToHours = (timeStr: string): number => {
   if (!timeStr) return 0;
   
@@ -49,13 +68,11 @@ const extractEmployeesFromBoards = (boards: Board[]): string[] => {
   return Array.from(employeeSet).sort();
 };
 
-const calculatePayments = (boards: Board[], employeeSalaries: Record<string, number>) => {
-  const employees: Record<string, {
-    salary: number;
-    hoursSpent: number;
-    rate: number;
-    additionalPayment: number;
-  }> = {};
+const calculatePayments = (
+  boards: Board[], 
+  employeeSalaries: Record<string, number>
+): Record<string, PaymentData> => {
+  const employees: Record<string, PaymentData> = {};
 
   boards.forEach(board => {
     board.items.forEach(item => {
@@ -74,7 +91,7 @@ const calculatePayments = (boards: Board[], employeeSalaries: Record<string, num
             employees[name] = {
               salary,
               hoursSpent: 0,
-              rate: hourlyRate || (salary > 0 ? salary / 160 : 0), // Use hourly rate from data or estimate
+              rate: hourlyRate || (salary > 0 ? salary / STANDARD_WORKING_HOURS : 0),
               additionalPayment: 0
             };
           }
@@ -99,16 +116,19 @@ const calculatePayments = (boards: Board[], employeeSalaries: Record<string, num
   return employees;
 };
 
-const PaymentsTable = ({ boards }: Props) => {
+// Component
+const PaymentsTable: React.FC<PaymentsTableProps> = ({ boards }) => {
+  // State
   const [localSalaries, setLocalSalaries] = useState<Record<string, number>>({});
   const [editMode, setEditMode] = useState(false);
   
-  // Memoize board employees to prevent infinite re-renders
+  // Memoized calculations
   const boardEmployees = useMemo(() => extractEmployeesFromBoards(boards), [boards]);
+  const payments = useMemo(() => calculatePayments(boards, localSalaries), [boards, localSalaries]);
   
   // Load salary settings from localStorage and merge with board employees
   useEffect(() => {
-    const savedSalaries = localStorage.getItem('employeeSalaries');
+    const savedSalaries = localStorage.getItem(STORAGE_KEY);
     const savedSalaryData = savedSalaries ? JSON.parse(savedSalaries) : {};
     
     const mergedSalaries: Record<string, number> = {};
@@ -121,9 +141,8 @@ const PaymentsTable = ({ boards }: Props) => {
     setLocalSalaries(mergedSalaries);
   }, [boardEmployees]);
 
-  const payments = calculatePayments(boards, localSalaries);
-  
-  const updateSalary = (employeeName: string, salary: number) => {
+  // Event handlers
+  const updateSalary = useCallback((employeeName: string, salary: number) => {
     const newSalaries = {
       ...localSalaries,
       [employeeName]: salary
@@ -131,72 +150,145 @@ const PaymentsTable = ({ boards }: Props) => {
     setLocalSalaries(newSalaries);
     
     // Save to localStorage
-    localStorage.setItem('employeeSalaries', JSON.stringify(newSalaries));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(newSalaries));
+  }, [localSalaries]);
+
+  const handleEditMode = useCallback(() => {
+    setEditMode(prev => !prev);
+  }, []);
+
+  // Utility functions
+  const formatCurrency = (amount: number): string => {
+    return `$${amount.toFixed(2)}`;
   };
 
-  const handleEditMode = () => {
-    setEditMode(!editMode);
+  const formatHours = (hours: number): string => {
+    return `${hours.toFixed(1)}h`;
   };
 
-  return (
-    <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
-      <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-gray-800">Additional Payments</h2>
-      
-      <div className="mb-4 p-3 sm:p-4 bg-blue-50 rounded-lg">
-        <h3 className="font-semibold text-blue-800 mb-2 text-sm sm:text-base">Calculation Formula:</h3>
-        <p className="text-blue-700 text-xs sm:text-sm">
-          Additional Payment = Salary - (Hours Spent × Hourly Rate)
-        </p>
-        <p className="text-blue-600 text-xs mt-1">
-          Hourly Rate = Monthly Salary ÷ 160 hours
-        </p>
-      </div>
+  const getAdditionalPaymentStyle = (amount: number): string => {
+    return amount > 0 
+      ? 'bg-green-100 text-green-800' 
+      : 'bg-red-100 text-red-800';
+  };
 
-      <div className="overflow-x-auto">
-        <table className="w-full table-auto border-collapse text-xs sm:text-sm">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="border border-gray-300 px-2 sm:px-4 py-2 sm:py-3 text-left font-semibold">Employee</th>
-              <th className="border border-gray-300 px-2 sm:px-4 py-2 sm:py-3 text-center font-semibold">Salary</th>
-              <th className="border border-gray-300 px-2 sm:px-4 py-2 sm:py-3 text-center font-semibold">Hours</th>
-              <th className="border border-gray-300 px-2 sm:px-4 py-2 sm:py-3 text-center font-semibold">Rate</th>
-              <th className="border border-gray-300 px-2 sm:px-4 py-2 sm:py-3 text-center font-semibold">Expected</th>
-              <th className="border border-gray-300 px-2 sm:px-4 py-2 sm:py-3 text-center font-semibold bg-green-50">Additional</th>
-            </tr>
-          </thead>
-          <tbody>
-            {Object.entries(payments).map(([name, payment], index) => {
-              const expectedEarnings = payment.hoursSpent * payment.rate;
-              return (
-                <tr key={name} className={index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
-                  <td className="border border-gray-300 px-2 sm:px-4 py-2 sm:py-3 font-medium">{name}</td>
-                  <td className="border border-gray-300 px-2 sm:px-4 py-2 sm:py-3 text-center">${payment.salary}</td>
-                  <td className="border border-gray-300 px-2 sm:px-4 py-2 sm:py-3 text-center">{payment.hoursSpent.toFixed(1)}h</td>
-                  <td className="border border-gray-300 px-2 sm:px-4 py-2 sm:py-3 text-center">${payment.rate.toFixed(2)}/h</td>
-                  <td className="border border-gray-300 px-2 sm:px-4 py-2 sm:py-3 text-center">${expectedEarnings.toFixed(2)}</td>
-                  <td className={`border border-gray-300 px-2 sm:px-4 py-2 sm:py-3 text-center font-bold ${
-                    payment.additionalPayment > 0 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-red-100 text-red-800'
-                  }`}>
-                    ${payment.additionalPayment.toFixed(2)}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+  // Render helpers
+  const renderCalculationInfo = () => (
+    <div className="mb-4 p-3 sm:p-4 bg-blue-50 rounded-lg">
+      <h3 className="font-semibold text-blue-800 mb-2 text-sm sm:text-base">
+        Calculation Formula:
+      </h3>
+      <p className="text-blue-700 text-xs sm:text-sm">
+        Additional Payment = Salary - (Hours Spent × Hourly Rate)
+      </p>
+      <p className="text-blue-600 text-xs mt-1">
+        Hourly Rate = Monthly Salary ÷ {STANDARD_WORKING_HOURS} hours
+      </p>
+    </div>
+  );
 
-      {Object.keys(payments).length === 0 && (
-        <div className="text-center py-8 text-gray-500">
-          No payment data available. Make sure your boards have Person and Hours columns.
-        </div>
-      )}
+  const renderPaymentRow = (name: string, payment: PaymentData, index: number) => {
+    const expectedEarnings = payment.hoursSpent * payment.rate;
+    const isEvenRow = index % 2 === 0;
 
+    return (
+      <tr key={name} className={isEvenRow ? 'bg-gray-50' : 'bg-white'}>
+        <td className="border border-gray-300 px-2 sm:px-4 py-2 sm:py-3 font-medium">
+          {name}
+        </td>
+        <td className="border border-gray-300 px-2 sm:px-4 py-2 sm:py-3 text-center">
+          {formatCurrency(payment.salary)}
+        </td>
+        <td className="border border-gray-300 px-2 sm:px-4 py-2 sm:py-3 text-center">
+          {formatHours(payment.hoursSpent)}
+        </td>
+        <td className="border border-gray-300 px-2 sm:px-4 py-2 sm:py-3 text-center">
+          {formatCurrency(payment.rate)}/h
+        </td>
+        <td className="border border-gray-300 px-2 sm:px-4 py-2 sm:py-3 text-center">
+          {formatCurrency(expectedEarnings)}
+        </td>
+        <td className={`border border-gray-300 px-2 sm:px-4 py-2 sm:py-3 text-center font-bold ${getAdditionalPaymentStyle(payment.additionalPayment)}`}>
+          {formatCurrency(payment.additionalPayment)}
+        </td>
+      </tr>
+    );
+  };
+
+  const renderPaymentsTable = () => (
+    <div className="overflow-x-auto">
+      <table className="w-full table-auto border-collapse text-xs sm:text-sm">
+        <thead>
+          <tr className="bg-gray-100">
+            <th className="border border-gray-300 px-2 sm:px-4 py-2 sm:py-3 text-left font-semibold">
+              Employee
+            </th>
+            <th className="border border-gray-300 px-2 sm:px-4 py-2 sm:py-3 text-center font-semibold">
+              Salary
+            </th>
+            <th className="border border-gray-300 px-2 sm:px-4 py-2 sm:py-3 text-center font-semibold">
+              Hours
+            </th>
+            <th className="border border-gray-300 px-2 sm:px-4 py-2 sm:py-3 text-center font-semibold">
+              Rate
+            </th>
+            <th className="border border-gray-300 px-2 sm:px-4 py-2 sm:py-3 text-center font-semibold">
+              Expected
+            </th>
+            <th className="border border-gray-300 px-2 sm:px-4 py-2 sm:py-3 text-center font-semibold bg-green-50">
+              Additional
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {Object.entries(payments).map(([name, payment], index) => 
+            renderPaymentRow(name, payment, index)
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+
+  const renderEmptyState = () => (
+    <div className="text-center py-8 text-gray-500">
+      No payment data available. Make sure your boards have Person and Hours columns.
+    </div>
+  );
+
+  const renderSalaryInput = (employeeSalary: EmployeeSalary) => (
+    <div key={employeeSalary.name} className="flex items-center space-x-2">
+      <label className="font-medium text-gray-700 flex-1 text-xs sm:text-sm">
+        {employeeSalary.name}:
+      </label>
+      <input
+        type="number"
+        value={employeeSalary.salary}
+        onChange={(e) => updateSalary(employeeSalary.name, parseFloat(e.target.value) || 0)}
+        className="w-16 sm:w-20 px-1 sm:px-2 py-1 border border-gray-300 rounded text-center text-xs sm:text-sm"
+        placeholder="0"
+      />
+      <span className="text-gray-500 text-xs sm:text-sm">$</span>
+    </div>
+  );
+
+  const renderSalaryDisplay = (employeeSalary: EmployeeSalary) => (
+    <div key={employeeSalary.name} className="text-gray-600">
+      <span className="font-medium">{employeeSalary.name}:</span> {formatCurrency(employeeSalary.salary)}
+    </div>
+  );
+
+  const renderSalaryManagement = () => {
+    const employeeSalaries: EmployeeSalary[] = Object.entries(localSalaries).map(([name, salary]) => ({
+      name,
+      salary
+    }));
+
+    return (
       <div className="mt-4 sm:mt-6 space-y-4">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-2 sm:space-y-0">
-          <h3 className="font-semibold text-gray-800 text-sm sm:text-base">Employee Salaries (from Monday.com data):</h3>
+          <h3 className="font-semibold text-gray-800 text-sm sm:text-base">
+            Employee Salaries (from Monday.com data):
+          </h3>
           <button
             onClick={handleEditMode}
             className="px-3 sm:px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors text-xs sm:text-sm self-start sm:self-auto"
@@ -208,32 +300,16 @@ const PaymentsTable = ({ boards }: Props) => {
         <div className="p-3 sm:p-4 bg-gray-50 rounded-lg">
           {editMode ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-              {Object.entries(localSalaries).map(([name, salary]) => (
-                <div key={name} className="flex items-center space-x-2">
-                  <label className="font-medium text-gray-700 flex-1 text-xs sm:text-sm">{name}:</label>
-                  <input
-                    type="number"
-                    value={salary}
-                    onChange={(e) => updateSalary(name, parseFloat(e.target.value) || 0)}
-                    className="w-16 sm:w-20 px-1 sm:px-2 py-1 border border-gray-300 rounded text-center text-xs sm:text-sm"
-                    placeholder="0"
-                  />
-                  <span className="text-gray-500 text-xs sm:text-sm">$</span>
-                </div>
-              ))}
+              {employeeSalaries.map(renderSalaryInput)}
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 text-xs sm:text-sm">
-              {Object.entries(localSalaries).map(([name, salary]) => (
-                <div key={name} className="text-gray-600">
-                  <span className="font-medium">{name}:</span> ${salary}
-                </div>
-              ))}
+              {employeeSalaries.map(renderSalaryDisplay)}
             </div>
           )}
         </div>
         
-        {Object.keys(localSalaries).length === 0 && (
+        {employeeSalaries.length === 0 && (
           <div className="p-3 sm:p-4 bg-yellow-50 rounded-lg border border-yellow-200">
             <p className="text-yellow-800 text-xs sm:text-sm">
               No employees found in the Monday.com boards. Make sure your boards have Person columns with assigned team members.
@@ -241,6 +317,19 @@ const PaymentsTable = ({ boards }: Props) => {
           </div>
         )}
       </div>
+    );
+  };
+
+  // Main render
+  return (
+    <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+      <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-gray-800">
+        Additional Payments
+      </h2>
+      
+      {renderCalculationInfo()}
+      {Object.keys(payments).length > 0 ? renderPaymentsTable() : renderEmptyState()}
+      {renderSalaryManagement()}
     </div>
   );
 };
