@@ -24,15 +24,6 @@ interface TaskSummaryWidgetProps {
 }
 
 // Constants
-const STATUS_LABELS: Record<string, string> = {
-  'Done': 'Done',
-  'Working on it': 'Progress',
-  'Stuck': 'Stuck',
-  'Not Started': 'New',
-  '': 'None',
-  'default': 'Other'
-};
-
 const SUMMARY_CARD_CONFIGS = [
   { key: 'totalTasks', label: 'Total Tasks', color: 'text-blue-600' },
   { key: 'totalBoards', label: 'Boards', color: 'text-green-600' },
@@ -159,13 +150,12 @@ export default function TaskSummaryWidget({
       <div className="grid grid-cols-5 sm:grid-cols-10 gap-1 text-xs">
         {Object.entries(statusCounts).map(([status, count]) => {
           const percentage = ((count / totalTasks) * 100).toFixed(1);
-          const label = STATUS_LABELS[status] || STATUS_LABELS.default;
           
           return (
             <div key={status} className="text-center p-1 bg-gray-50 rounded">
               <div className="font-semibold text-gray-800">{count}</div>
               <div className="text-gray-600 truncate" title={`${status}: ${percentage}%`}>
-                {label}
+                {status}
               </div>
             </div>
           );
