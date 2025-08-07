@@ -1,5 +1,3 @@
-const MONDAY_API_URL = 'https://api.monday.com/v2';
-
 interface MondayResponse<T> {
   data: T;
   errors?: Array<{ message: string }>;
@@ -34,7 +32,7 @@ export class MondayAPI {
   }
 
   private async makeRequest<T>(query: string, variables?: GraphQLVariables): Promise<T> {
-    const response = await fetch(MONDAY_API_URL, {
+    const response = await fetch(`${process.env.MONDAY_API_URL}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

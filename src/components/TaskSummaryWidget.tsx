@@ -24,6 +24,23 @@ interface TaskSummaryWidgetProps {
 }
 
 // Constants
+const STATUS_COLORS: Record<string, string> = {
+  'In Progress': 'border-l-4 border-yellow-500 bg-yellow-50',
+  'Need Review': 'border-l-4 border-orange-500 bg-orange-50',
+  'Lead Feedback': 'border-l-4 border-blue-500 bg-blue-50',
+  'To Pack': 'border-l-4 border-purple-500 bg-purple-50',
+  'Sent': 'border-l-4 border-cyan-500 bg-cyan-50',
+  'Client Feedback': 'border-l-4 border-teal-500 bg-teal-50',
+  'Ready for Client': 'border-l-4 border-green-500 bg-green-50',
+  'Paused': 'border-l-4 border-gray-500 bg-gray-50',
+  'Done': 'border-l-4 border-green-600 bg-green-100',
+  'Stopped': 'border-l-4 border-red-500 bg-red-50',
+  'Working on it': 'border-l-4 border-yellow-500 bg-yellow-50',
+  'Stuck': 'border-l-4 border-red-400 bg-red-50',
+  'Not Started': 'border-l-4 border-gray-400 bg-gray-50',
+  'Other': 'border-l-4 border-gray-300 bg-gray-50'
+};
+
 const SUMMARY_CARD_CONFIGS = [
   { key: 'totalTasks', label: 'Total Tasks', color: 'text-blue-600' },
   { key: 'totalBoards', label: 'Boards', color: 'text-green-600' },
@@ -150,9 +167,10 @@ export default function TaskSummaryWidget({
       <div className="grid grid-cols-5 sm:grid-cols-10 gap-1 text-xs">
         {Object.entries(statusCounts).map(([status, count]) => {
           const percentage = ((count / totalTasks) * 100).toFixed(1);
+          const colorClasses = STATUS_COLORS[status] || STATUS_COLORS['Other'];
           
           return (
-            <div key={status} className="text-center p-1 bg-gray-50 rounded">
+            <div key={status} className={`text-center p-1 rounded ${colorClasses}`}>
               <div className="font-semibold text-gray-800">{count}</div>
               <div className="text-gray-600 truncate" title={`${status}: ${percentage}%`}>
                 {status}

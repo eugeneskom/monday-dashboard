@@ -97,7 +97,7 @@ MONDAY_CLIENT_ID=5d265acf26737f438fd1626cfb668ad0
 MONDAY_CLIENT_SECRET=c4fa3541afaacd14d0514939edc88e88
 MONDAY_API_TOKEN=[Your API token]
 NEXT_PUBLIC_APP_URL=http://localhost:3002
-MONDAY_API_URL=https://api.monday.com/v2
+MONDAY_API_URL=https://api.monday.com/v3
 ```
 
 ## 6. Deployment
