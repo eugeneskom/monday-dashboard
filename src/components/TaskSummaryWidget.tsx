@@ -66,24 +66,27 @@ export default function TaskSummaryWidget({
 
     data.forEach((board: Board) => {
       board.items?.forEach(item => {
-        totalTasks++;
-        
-        // Find status column using the same pattern as EmployeeTable
-        const statusCol = item.column_values.find(col => 
-          col.id === 'status' || col.id === 'status_1__1' || col.id.includes('status')
-        );
-        
-        const statusText = statusCol?.text || 'Other';
-        statusCounts[statusText] = (statusCounts[statusText] || 0) + 1;
+        if (item?.subitems) {
+          item.subitems.forEach((subitem) => {
+            totalTasks++;
+            
+            // Look for status column using the same pattern as EmployeeTable
+            const statusCol = subitem?.column_values
+              ?.find((col) => col.id === 'status' || col.id === 'status_1__1' || col.id.includes('status'));
+            
+            const statusText = statusCol?.text || 'Other';
+            statusCounts[statusText] = (statusCounts[statusText] || 0) + 1;
 
-        // Count completed and in-progress tasks
-        if (statusCol?.text) {
-          const statusLower = statusCol.text.toLowerCase();
-          if (statusLower.includes('done') || statusLower.includes('complete')) {
-            completedTasks++;
-          } else if (statusLower.includes('working') || statusLower.includes('progress')) {
-            inProgressTasks++;
-          }
+            // Count completed and in-progress tasks
+            if (statusCol?.text) {
+              const statusLower = statusCol.text.toLowerCase();
+              if (statusLower.includes('done') || statusLower.includes('complete')) {
+                completedTasks++;
+              } else if (statusLower.includes('working') || statusLower.includes('progress')) {
+                inProgressTasks++;
+              }
+            }
+          });
         }
       });
     });
