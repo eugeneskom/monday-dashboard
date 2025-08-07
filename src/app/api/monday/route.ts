@@ -1,16 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createMondayAPI } from '@/lib/api';
 
 export async function POST(request: NextRequest) {
   try {
     const { query, variables } = await request.json();
+    
+    const token = process.env.MONDAY_API_TOKEN;
+    if (!token) {
+      throw new Error('MONDAY_API_TOKEN is not configured');
+    }
 
-    const mondayAPI = createMondayAPI();
-    const response = await fetch(`${process.env.MONDAY_API_URL}`, {
+    const response = await fetch('https://api.monday.com/v2', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': process.env.MONDAY_API_TOKEN!,
+        'Authorization': token,
       },
       body: JSON.stringify({
         query,

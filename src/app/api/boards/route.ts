@@ -2,6 +2,11 @@ import { NextResponse } from 'next/server';
 
 export async function GET() {
   try {
+    const token = process.env.MONDAY_API_TOKEN;
+    if (!token) {
+      throw new Error('MONDAY_API_TOKEN is not configured');
+    }
+
     const query = `
       query GetAllBoards {
         boards(limit: 100) {
@@ -13,10 +18,10 @@ export async function GET() {
       }
     `;
 
-    const response = await fetch(`${process.env.MONDAY_API_URL}`, {
+    const response = await fetch('https://api.monday.com/v2', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${process.env.MONDAY_API_TOKEN}`,
+        'Authorization': token,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
