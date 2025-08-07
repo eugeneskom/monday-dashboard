@@ -25,6 +25,7 @@ interface TaskSummaryWidgetProps {
 
 // Constants
 const STATUS_COLORS: Record<string, string> = {
+  // Exact matches from your screenshot
   'In Progress': 'border-l-4 border-yellow-500 bg-yellow-50',
   'Need Review': 'border-l-4 border-orange-500 bg-orange-50',
   'Lead Feedback': 'border-l-4 border-blue-500 bg-blue-50',
@@ -35,9 +36,14 @@ const STATUS_COLORS: Record<string, string> = {
   'Paused': 'border-l-4 border-gray-500 bg-gray-50',
   'Done': 'border-l-4 border-green-600 bg-green-100',
   'Stopped': 'border-l-4 border-red-500 bg-red-50',
+  
+  // Alternative variations
   'Working on it': 'border-l-4 border-yellow-500 bg-yellow-50',
   'Stuck': 'border-l-4 border-red-400 bg-red-50',
   'Not Started': 'border-l-4 border-gray-400 bg-gray-50',
+  
+  // Empty or fallback
+  '': 'border-l-4 border-gray-300 bg-gray-50',
   'Other': 'border-l-4 border-gray-300 bg-gray-50'
 };
 
@@ -163,15 +169,39 @@ export default function TaskSummaryWidget({
       );
     }
 
+    // Helper function to get color classes with fallback
+    const getStatusColor = (status: string): string => {
+      // Direct match first
+      if (STATUS_COLORS[status]) {
+        return STATUS_COLORS[status];
+      }
+      
+      // Debug: log the actual status names
+      console.log('Status from data:', `"${status}"`, 'Available keys:', Object.keys(STATUS_COLORS));
+      
+      // Trim whitespace and try again
+      const trimmedStatus = status.trim();
+      if (STATUS_COLORS[trimmedStatus]) {
+        return STATUS_COLORS[trimmedStatus];
+      }
+      
+      // Case-insensitive match
+      const exactMatch = Object.keys(STATUS_COLORS).find(
+        key => key.toLowerCase() === status.toLowerCase()
+      );
+      if (exactMatch) {
+        return STATUS_COLORS[exactMatch];
+      }
+      
+      // Default fallback
+      return STATUS_COLORS['Other'];
+    };
+
     return (
       <div className="grid grid-cols-5 sm:grid-cols-10 gap-1 text-xs">
         {Object.entries(statusCounts).map(([status, count]) => {
           const percentage = ((count / totalTasks) * 100).toFixed(1);
-          
-          // Debug: log the actual status names
-          console.log('Status from data:', status, 'Has color mapping:', !!STATUS_COLORS[status]);
-          
-          const colorClasses = STATUS_COLORS[status] || STATUS_COLORS['Other'];
+          const colorClasses = getStatusColor(status);
           
           return (
             <div key={status} className={`text-center p-2 rounded ${colorClasses}`}>
