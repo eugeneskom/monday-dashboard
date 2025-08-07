@@ -205,15 +205,15 @@ export default function TaskSummaryWidget({
     };
 
     return (
-      <div className="grid grid-cols-5 sm:grid-cols-10 gap-1 text-xs">
+      <div className="flex flex-wrap gap-1 text-xs">
         {Object.entries(statusCounts).map(([status, count]) => {
           const percentage = ((count / totalTasks) * 100).toFixed(1);
           const colorClasses = getStatusColor(status);
           
           return (
-            <div key={status} className={`text-center p-2 rounded ${colorClasses}`}>
+            <div key={status} className={`text-center p-2 rounded whitespace-nowrap ${colorClasses}`}>
               <div className="font-semibold text-gray-800">{count}</div>
-              <div className="text-gray-700 truncate font-medium" title={`${status}: ${percentage}%`}>
+              <div className="text-gray-700 font-medium" title={`${status}: ${percentage}%`}>
                 {status}
               </div>
             </div>
