@@ -1,9 +1,4 @@
 {
-  "env": {
-    "MONDAY_API_TOKEN": "@monday-api-token",
-    "MONDAY_WEBHOOK_SECRET": "@monday-webhook-secret",
-    "NEXT_PUBLIC_APP_URL": "https://your-app-name.vercel.app"
-  },
   "functions": {
     "src/app/api/**/*.ts": {
       "maxDuration": 30
