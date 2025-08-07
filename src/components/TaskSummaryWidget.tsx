@@ -170,9 +170,9 @@ export default function TaskSummaryWidget({
           const colorClasses = STATUS_COLORS[status] || STATUS_COLORS['Other'];
           
           return (
-            <div key={status} className={`text-center p-1 rounded ${colorClasses}`}>
+            <div key={status} className={`text-center p-2 rounded ${colorClasses}`}>
               <div className="font-semibold text-gray-800">{count}</div>
-              <div className="text-gray-600 truncate" title={`${status}: ${percentage}%`}>
+              <div className="text-gray-700 truncate font-medium" title={`${status}: ${percentage}%`}>
                 {status}
               </div>
             </div>
