@@ -167,6 +167,10 @@ export default function TaskSummaryWidget({
       <div className="grid grid-cols-5 sm:grid-cols-10 gap-1 text-xs">
         {Object.entries(statusCounts).map(([status, count]) => {
           const percentage = ((count / totalTasks) * 100).toFixed(1);
+          
+          // Debug: log the actual status names
+          console.log('Status from data:', status, 'Has color mapping:', !!STATUS_COLORS[status]);
+          
           const colorClasses = STATUS_COLORS[status] || STATUS_COLORS['Other'];
           
           return (
