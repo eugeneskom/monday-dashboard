@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
       throw new Error('MONDAY_API_TOKEN is not configured');
     }
 
-    const response = await fetch(`${process.env.MONDAY_API_UR}`, {
+    const response = await fetch(process.env.MONDAY_API_URL || 'https://api.monday.com/v2', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

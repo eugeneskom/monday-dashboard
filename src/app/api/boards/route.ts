@@ -79,7 +79,7 @@ export async function GET(): Promise<NextResponse<SuccessResponse | ErrorRespons
     }
 
     // Make request to Monday.com API
-    const response = await fetch(`${process.env.MONDAY_API_URL}`, {
+    const response = await fetch(process.env.MONDAY_API_URL || 'https://api.monday.com/v2', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
