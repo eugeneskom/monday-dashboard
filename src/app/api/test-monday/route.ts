@@ -6,7 +6,7 @@ export async function GET() {
     console.log('API Token exists:', !!process.env.MONDAY_API_TOKEN);
     console.log('Token length:', process.env.MONDAY_API_TOKEN?.length);
 
-    const response = await fetch('https://api.monday.com/v3', {
+    const response = await fetch(`${process.env.MONDAY_API_URL}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -13,7 +13,7 @@ export async function GET() {
       }
     `;
 
-    const response = await fetch('https://api.monday.com/v3', {
+    const response = await fetch(`${process.env.MONDAY_API_URL}`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${process.env.MONDAY_API_TOKEN}`,
