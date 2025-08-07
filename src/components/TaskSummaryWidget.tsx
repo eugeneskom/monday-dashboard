@@ -72,6 +72,8 @@ export default function TaskSummaryWidget({
 }: TaskSummaryWidgetProps) {
   // Memoized calculations
   const summaryStats = useMemo((): SummaryStats => {
+    console.log('🔄 TaskSummaryWidget: Recalculating stats with data:', data?.length, 'boards');
+    
     if (!data || data.length === 0) {
       return {
         totalTasks: 0,
@@ -90,6 +92,25 @@ export default function TaskSummaryWidget({
 
     data.forEach((board: Board) => {
       board.items?.forEach(item => {
+        // Count main items if they have status columns
+        const itemStatusCol = item?.column_values
+          ?.find((col) => col.id === 'status' || col.id === 'status_1__1' || col.id.includes('status'));
+        
+        if (itemStatusCol?.text) {
+          totalTasks++;
+          const statusText = itemStatusCol.text;
+          statusCounts[statusText] = (statusCounts[statusText] || 0) + 1;
+
+          // Count completed and in-progress tasks
+          const statusLower = statusText.toLowerCase();
+          if (statusLower.includes('done') || statusLower.includes('complete')) {
+            completedTasks++;
+          } else if (statusLower.includes('working') || statusLower.includes('progress')) {
+            inProgressTasks++;
+          }
+        }
+
+        // Also process subitems as before
         if (item?.subitems) {
           item.subitems.forEach((subitem) => {
             totalTasks++;
@@ -116,6 +137,9 @@ export default function TaskSummaryWidget({
     });
 
     const completionRate = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+
+    console.log('📊 Status counts updated:', statusCounts);
+    console.log('📈 Stats: Total:', totalTasks, 'Completed:', completedTasks, 'In Progress:', inProgressTasks);
 
     return {
       totalTasks,
@@ -231,7 +255,14 @@ export default function TaskSummaryWidget({
   return (
     <div className="p-4 bg-white rounded-lg shadow">
       {/* Header */}
-      <h3 className="text-lg font-semibold mb-3">Project Overview</h3>
+      <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+        Project Overview
+        {data && data.length > 0 && (
+          <span className="animate-pulse text-green-500 text-xs">
+            🔄 Live Data
+          </span>
+        )}
+      </h3>
       
       {/* Summary Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
