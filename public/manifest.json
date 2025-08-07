@@ -1,0 +1,22 @@
+{
+  "name": "Monday Dashboard",
+  "version": "1.0.0",
+  "description": "A dashboard for managing Monday.com boards",
+  "icon": "https://your-domain.com/icon.png",
+  "app_version_type": "PRODUCTION",
+  "features": [
+    {
+      "type": "BoardViewsAndDashboards",
+      "name": "Dashboard View",
+      "url": "https://your-domain.com/dashboard",
+      "height": 600
+    }
+  ],
+  "permissions": [
+    "boards:read",
+    "teams:read",
+    "users:read",
+    "workspaces:read",
+    "items:read"
+  ]
+}
