@@ -98,17 +98,36 @@ export default function TaskSummaryWidget({
   const statusCounts: StatusCount = {};
 
   data.forEach((board: Board) => {
+    console.log(` Processing board: ${board.name} with ${board.items?.length || 0} items`);
     board.items?.forEach((item: TaskLike) => {
-      const processTask = (task: TaskLike) => {
-        if (!task.id || seenIds.has(task.id)) return; // Skip duplicates
+      console.log(`📋 Item: ${item.name} (ID: ${item.id}), has ${item.subitems?.length || 0} subitems`);
+      
+      const processTask = (task: TaskLike, isSubitem = false) => {
+        console.log(`   Processing ${isSubitem ? 'SUBITEM' : 'ITEM'}: ${task.name} (ID: ${task.id})`);
+        
+        if (!task.id) {
+          console.log(`  Skipping - no ID`);
+          return;
+        }
+        
+        if (seenIds.has(task.id)) {
+          console.log(`   Skipping - already seen ID: ${task.id}`);
+          return;
+        }
+        
         seenIds.add(task.id);
 
         const statusCol = task.column_values?.find(
           (col) => col.id === 'status' // pick the main status column only
         );
-        if (!statusCol?.text) return;
+        
+        if (!statusCol?.text) {
+          console.log(`   Skipping - no status column found`);
+          return;
+        }
 
         const statusText = statusCol.text;
+        console.log(`   Counting task with status: "${statusText}"`);
         totalTasks++;
         statusCounts[statusText] = (statusCounts[statusText] || 0) + 1;
 
@@ -121,13 +140,18 @@ export default function TaskSummaryWidget({
       };
 
       if (item.subitems && item.subitems.length > 0) {
+        console.log(`   Item has ${item.subitems.length} subitems - counting only subitems`);
         // count only subitems; do not count the parent
-        item.subitems.forEach((sub) => processTask(sub));
+        item.subitems.forEach((sub) => processTask(sub, true));
       } else {
-        processTask(item);
+        console.log(`  📄 Item has no subitems - counting the item itself`);
+        processTask(item, false);
       }
     });
   });
+
+  console.log(` Final counts: Total=${totalTasks}, Completed=${completedTasks}, InProgress=${inProgressTasks}`);
+  console.log(` Status breakdown:`, statusCounts);
 
   const completionRate = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
