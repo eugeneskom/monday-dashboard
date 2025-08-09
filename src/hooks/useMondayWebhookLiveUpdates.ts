@@ -1,5 +1,5 @@
 'use client';
-import { useRef, useCallback, useEffect } from 'react';
+import { useRef, useCallback, useEffect, useState } from 'react';
 
 export interface WebhookEvent {
   type: string;
@@ -22,63 +22,63 @@ interface WebhookOptions {
 
 export function useMondayWebhookLiveUpdates(options?: WebhookOptions) {
   const eventSourceRef = useRef<EventSource | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const { onBoardUpdate, onConnectionStatus } = options || {};
+
   const triggerRefresh = useCallback(() => {
+    // let the caller decide how to refresh (e.g., SWR mutate)
+    // kept for backward compatibility
     console.log('Webhook live update triggered');
   }, []);
 
-  const { onBoardUpdate, onConnectionStatus } = options || {};
-
   useEffect(() => {
-    // Only run in browser environment
-    if (typeof window === 'undefined') {
-      return;
+    if (typeof window === 'undefined') return;
+
+    // Close any existing connection first
+    if (eventSourceRef.current) {
+      eventSourceRef.current.close();
+      eventSourceRef.current = null;
     }
 
     // Connect to SSE endpoint
-    eventSourceRef.current = new EventSource('/api/webhooks/monday');
-    
-    eventSourceRef.current.onopen = () => {
-      console.log('EventSource connected');
-      if (onConnectionStatus) {
-        onConnectionStatus(true);
-      }
+    const es = new EventSource('/api/webhooks/stream', { withCredentials: false });
+    eventSourceRef.current = es;
+
+    es.onopen = () => {
+      setIsConnected(true);
+      onConnectionStatus?.(true);
+      console.log('[SSE] connected');
     };
-    
-    eventSourceRef.current.onmessage = (event) => {
-      console.log('Webhook received:', event.data);
+
+    es.onmessage = (event) => {
       try {
-        const webhookData: WebhookEvent = JSON.parse(event.data);
-        console.log('Parsed webhook data:', webhookData);
-        
-        // Call the onBoardUpdate callback if provided
-        if (onBoardUpdate) {
-          onBoardUpdate(webhookData);
-        }
-        
-        // Trigger refresh when webhook is received
+        const data = JSON.parse(event.data);
+        // broadcast to consumers
+        onBoardUpdate?.(data as WebhookEvent);
         triggerRefresh();
-      } catch (error) {
-        console.error('Error parsing webhook data:', error);
+      } catch (e) {
+        console.warn('[SSE] non-JSON message', event.data);
       }
     };
-    
-    eventSourceRef.current.onerror = (error) => {
-      console.error('EventSource error:', error);
-      if (onConnectionStatus) {
-        onConnectionStatus(false);
-      }
+
+    es.onerror = () => {
+      console.error('[SSE] error; closing and will rely on fallback if any');
+      setIsConnected(false);
+      onConnectionStatus?.(false);
+      es.close();
     };
-    
+
     return () => {
-      eventSourceRef.current?.close();
-      if (onConnectionStatus) {
-        onConnectionStatus(false);
+      if (eventSourceRef.current) {
+        console.log('[SSE] cleanup');
+        eventSourceRef.current.close();
+        eventSourceRef.current = null;
       }
     };
-  }, [triggerRefresh, onBoardUpdate, onConnectionStatus]);
+  }, [onBoardUpdate, onConnectionStatus, triggerRefresh]);
 
   return {
     triggerRefresh,
-    isConnected: typeof window !== 'undefined' && eventSourceRef.current?.readyState === EventSource.OPEN
+    isConnected,
   };
 }

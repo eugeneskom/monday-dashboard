@@ -71,85 +71,68 @@ export default function TaskSummaryWidget({
   error = null 
 }: TaskSummaryWidgetProps) {
   // Memoized calculations
-  const summaryStats = useMemo((): SummaryStats => {
-    console.log('🔄 TaskSummaryWidget: Recalculating stats with data:', data?.length, 'boards');
-    
-    if (!data || data.length === 0) {
-      return {
-        totalTasks: 0,
-        totalBoards: 0,
-        completedTasks: 0,
-        inProgressTasks: 0,
-        completionRate: 0,
-        statusCounts: {}
-      };
-    }
-
-    let totalTasks = 0;
-    let completedTasks = 0;
-    let inProgressTasks = 0;
-    const statusCounts: StatusCount = {};
-
-    data.forEach((board: Board) => {
-      board.items?.forEach(item => {
-        // Count main items if they have status columns
-        const itemStatusCol = item?.column_values
-          ?.find((col) => col.id === 'status' || col.id === 'status_1__1' || col.id.includes('status'));
-        
-        if (itemStatusCol?.text) {
-          totalTasks++;
-          const statusText = itemStatusCol.text;
-          statusCounts[statusText] = (statusCounts[statusText] || 0) + 1;
-
-          // Count completed and in-progress tasks
-          const statusLower = statusText.toLowerCase();
-          if (statusLower.includes('done') || statusLower.includes('complete')) {
-            completedTasks++;
-          } else if (statusLower.includes('working') || statusLower.includes('progress')) {
-            inProgressTasks++;
-          }
-        }
-
-        // Also process subitems as before
-        if (item?.subitems) {
-          item.subitems.forEach((subitem) => {
-            totalTasks++;
-            
-            // Look for status column using the same pattern as EmployeeTable
-            const statusCol = subitem?.column_values
-              ?.find((col) => col.id === 'status' || col.id === 'status_1__1' || col.id.includes('status'));
-            
-            const statusText = statusCol?.text || 'Other';
-            statusCounts[statusText] = (statusCounts[statusText] || 0) + 1;
-
-            // Count completed and in-progress tasks
-            if (statusCol?.text) {
-              const statusLower = statusCol.text.toLowerCase();
-              if (statusLower.includes('done') || statusLower.includes('complete')) {
-                completedTasks++;
-              } else if (statusLower.includes('working') || statusLower.includes('progress')) {
-                inProgressTasks++;
-              }
-            }
-          });
-        }
-      });
-    });
-
-    const completionRate = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
-
-    console.log('📊 Status counts updated:', statusCounts);
-    console.log('📈 Stats: Total:', totalTasks, 'Completed:', completedTasks, 'In Progress:', inProgressTasks);
-
+ const summaryStats = useMemo((): SummaryStats => {
+  if (!data || data.length === 0) {
     return {
-      totalTasks,
-      totalBoards: data.length,
-      completedTasks,
-      inProgressTasks,
-      completionRate,
-      statusCounts
+      totalTasks: 0,
+      totalBoards: 0,
+      completedTasks: 0,
+      inProgressTasks: 0,
+      completionRate: 0,
+      statusCounts: {}
     };
-  }, [data]);
+  }
+
+  const seenIds = new Set<string>(); // To prevent counting the same task twice
+  let totalTasks = 0;
+  let completedTasks = 0;
+  let inProgressTasks = 0;
+  const statusCounts: StatusCount = {};
+
+  data.forEach((board: Board) => {
+    board.items?.forEach(item => {
+      // Helper to process a single task/subtask
+      const processTask = (task: any) => {
+        if (!task.id || seenIds.has(task.id)) return; // Skip duplicates
+        seenIds.add(task.id);
+
+        const statusCol = task.column_values?.find(
+          col => col.id === 'status' // pick the main status column only
+        );
+        if (!statusCol?.text) return;
+
+        const statusText = statusCol.text;
+        totalTasks++;
+        statusCounts[statusText] = (statusCounts[statusText] || 0) + 1;
+
+        const statusLower = statusText.toLowerCase();
+        if (statusLower.includes('done') || statusLower.includes('complete')) {
+          completedTasks++;
+        } else if (statusLower.includes('working') || statusLower.includes('progress')) {
+          inProgressTasks++;
+        }
+      };
+
+      if (item.subitems && item.subitems.length > 0) {
+        item.subitems.forEach(processTask);
+      } else {
+        processTask(item);
+      }
+    });
+  });
+
+  const completionRate = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+
+  return {
+    totalTasks,
+    totalBoards: data.length,
+    completedTasks,
+    inProgressTasks,
+    completionRate,
+    statusCounts
+  };
+}, [data]);
+
 
   // Render helpers
   const renderLoadingState = () => (

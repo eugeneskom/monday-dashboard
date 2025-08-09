@@ -1,8 +1,8 @@
 'use client';
 import useSWR from 'swr';
-import { useCallback } from 'react';
+import { useMondayWebhookLiveUpdates } from './useMondayWebhookLiveUpdates';
 import { Board } from '@/types/monday';
-import { useMondayWebhookLiveUpdates, WebhookEvent } from './useMondayWebhookLiveUpdates';
+import { useCallback, useState } from 'react';
 
 interface MondayBoardResponse {
   id: string;
@@ -129,46 +129,34 @@ interface UseBoardDataResult {
 
 export function useBoardData(boardIds: string[]): UseBoardDataResult {
   console.log('useBoardData called with boardIds:', boardIds);
-  
-  // Create a stable key for SWR that includes the board IDs
-  const swrKey = boardIds.length > 0 ? `boards-${boardIds.sort().join(',')}` : null;
-  
-  // Fetcher function that directly uses the boardIds
+
+  const swrKey = boardIds.length > 0 ? `boards-${boardIds.slice().sort().join(',')}` : null;
+
   const fetcher = async () => {
     console.log('SWR fetcher called for boards:', boardIds);
     return fetchBoards(boardIds);
   };
 
-  const { data, error, isLoading, mutate } = useSWR(
-    swrKey,
-    fetcher,
-    {
-      refreshInterval: 30000, // Refresh every 30 seconds as fallback
-      revalidateOnFocus: false,
-      // Don't cache data when board selection changes
-      dedupingInterval: 0,
-    }
-  );
+  const [isLiveConnected, setIsLiveConnected] = useState(false);
 
-  // Stable callback functions for webhooks
-  const handleBoardUpdate = useCallback((event: WebhookEvent) => {
-    // Check if the update is for one of our selected boards
-    if (event.boardId && boardIds.includes(event.boardId)) {
-      console.log('Live update received for board:', event.boardId);
-      // Trigger SWR refresh
-      mutate();
-    }
-  }, [boardIds, mutate]);
-
-  const handleConnectionStatus = useCallback((connected: boolean) => {
-    console.log('Live connection status:', connected);
-  }, []);
-
-  // Set up live updates via webhooks
-  const { isConnected, triggerRefresh } = useMondayWebhookLiveUpdates({
-    onBoardUpdate: handleBoardUpdate,
-    onConnectionStatus: handleConnectionStatus
+  // Get SWR first
+  const { data, error, mutate, isLoading } = useSWR(swrKey, fetcher, {
+    refreshInterval: 0,          // live-only; no polling
+    revalidateOnFocus: true,
   });
+
+  // Wire SSE/webhooks, revalidate on events
+  const { triggerRefresh: sseTrigger } = useMondayWebhookLiveUpdates({
+    onBoardUpdate: () => {
+      void mutate();
+    },
+    onConnectionStatus: setIsLiveConnected,
+  });
+
+  const manualRefresh = useCallback(() => {
+    sseTrigger();
+    void mutate();
+  }, [sseTrigger, mutate]);
 
   console.log('useBoardData SWR result:', { data, error, isLoading });
 
@@ -176,10 +164,7 @@ export function useBoardData(boardIds: string[]): UseBoardDataResult {
     boards: data || [],
     isLoading,
     error: error?.message || null,
-    isLiveConnected: isConnected,
-    triggerRefresh: () => {
-      triggerRefresh();
-      mutate();
-    }
+    isLiveConnected,
+    triggerRefresh: manualRefresh,
   };
 }

@@ -71,7 +71,7 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({ boards }) => {
         );
         const status = statusColumn?.text?.toLowerCase() || 'not set';
         
-        console.log(`Status: ${status}`);
+        // console.log(`Status: ${status}`);
 
         // Map status to specific counters
         switch (status) {
