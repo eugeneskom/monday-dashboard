@@ -106,11 +106,17 @@ const calculatePayments = (
     });
   });
 
-  // Calculate additional payments: Salary - (Hours Spent * Hourly Rate)
+  // Calculate additional payments: Only for overtime (hours > 160)
   Object.keys(employees).forEach(name => {
     const emp = employees[name];
-    const expectedEarnings = emp.hoursSpent * emp.rate;
-    emp.additionalPayment = Math.max(0, emp.salary - expectedEarnings);
+    
+    // Additional payment only if worked more than standard hours
+    if (emp.hoursSpent > STANDARD_WORKING_HOURS) {
+      const overtimeHours = emp.hoursSpent - STANDARD_WORKING_HOURS;
+      emp.additionalPayment = overtimeHours * emp.rate;
+    } else {
+      emp.additionalPayment = 0; // No additional payment for working less than 160h
+    }
   });
 
   return employees;
@@ -179,7 +185,7 @@ const PaymentsTable: React.FC<PaymentsTableProps> = ({ boards }) => {
         Calculation Formula:
       </h3>
       <p className="text-blue-700 text-xs sm:text-sm">
-        Additional Payment = Salary - (Hours Spent × Hourly Rate)
+        Additional Payment = (Hours Worked - {STANDARD_WORKING_HOURS}) × Hourly Rate (only if hours &gt; {STANDARD_WORKING_HOURS})
       </p>
       <p className="text-blue-600 text-xs mt-1">
         Hourly Rate = Monthly Salary ÷ {STANDARD_WORKING_HOURS} hours
