@@ -59,7 +59,17 @@ export default function Home() {
   
   // Memoized calculations
   const dashboardStats = useMemo((): DashboardStats => {
-    const totalItems = boards.reduce((total: number, board: Board) => total + board.items.length, 0);
+    const totalItems = boards.reduce((total: number, board: Board) => {
+      return (
+        total +
+        // es-lint-ignore-next-line
+        board.items.reduce((acc, item: { subitems?: unknown[] }) => {
+          const subCount = Array.isArray(item.subitems) ? item.subitems.length : 0;
+          return acc + (subCount > 0 ? subCount : 1);
+        }, 0)
+      );
+    }, 0);
+
     const boardNames = boards.map((board: Board) => board.name);
     
     return {

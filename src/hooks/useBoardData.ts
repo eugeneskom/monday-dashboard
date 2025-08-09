@@ -84,37 +84,12 @@ const fetchBoards = async (boardIds: string[]): Promise<Board[]> => {
   const result = await response.json();
   console.log('Raw result:', result);
   
-  // Transform the response to match our expected Board interface
-  const boards = result.data.boards.map((board: MondayBoardResponse) => {
-    // Combine main items and subitems into a single items array
-    type MondayItem = {
-      id: string;
-      name: string;
-      column_values: Array<{
-        id: string;
-        text: string;
-        value: string;
-      }>;
-    };
-    
-    const allItems: MondayItem[] = [];
-    
-    board.items_page?.items.forEach(item => {
-      // Add the main item
-      allItems.push(item);
-      
-      // Add all subitems if they exist
-      if (item.subitems && item.subitems.length > 0) {
-        allItems.push(...item.subitems);
-      }
-    });
-    
-    return {
-      id: board.id,
-      name: board.name,
-      items: allItems
-    };
-  });
+  // Return items with nested subitems (no flattening to avoid double count)
+  const boards = result.data.boards.map((board: MondayBoardResponse) => ({
+    id: board.id,
+    name: board.name,
+    items: board.items_page?.items ?? [],
+  }));
   
   return boards;
 };

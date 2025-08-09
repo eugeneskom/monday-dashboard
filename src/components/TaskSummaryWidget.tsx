@@ -92,12 +92,18 @@ export default function TaskSummaryWidget({
   data.forEach((board: Board) => {
     board.items?.forEach(item => {
       // Helper to process a single task/subtask
-      const processTask = (task: any) => {
-        if (!task.id || seenIds.has(task.id)) return; // Skip duplicates
-        seenIds.add(task.id);
+      type TaskLike = {
+        name?: string;
+        column_values?: { id: string; text?: string | null }[];
+        subitems?: TaskLike[];
+      };
 
+      const processTask = (task: TaskLike) => {
         const statusCol = task.column_values?.find(
-          col => col.id === 'status' // pick the main status column only
+          (col) =>
+            col.id === 'status' ||
+            col.id === 'status_1__1' ||
+            col.id.includes('status')
         );
         if (!statusCol?.text) return;
 
@@ -114,9 +120,10 @@ export default function TaskSummaryWidget({
       };
 
       if (item.subitems && item.subitems.length > 0) {
-        item.subitems.forEach(processTask);
+        // count only subitems; do not count the parent
+        item.subitems.forEach((sub) => processTask(sub));
       } else {
-        processTask(item);
+        processTask(item as TaskLike);
       }
     });
   });

@@ -53,11 +53,10 @@ export function useMondayWebhookLiveUpdates(options?: WebhookOptions) {
     es.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        // broadcast to consumers
         onBoardUpdate?.(data as WebhookEvent);
         triggerRefresh();
-      } catch (e) {
-        console.warn('[SSE] non-JSON message', event.data);
+      } catch (err) {
+        console.warn('[SSE] non-JSON message', event.data, err);
       }
     };
 
