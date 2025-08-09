@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { SSE } from '../../webhooks/stream/route';
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
@@ -15,7 +14,12 @@ export async function POST(req: NextRequest) {
     timestamp: new Date().toISOString(),
     event: body?.event ?? body,
   };
-  SSE.broadcast(payload);
+  
+  // Access broadcaster from global
+  const sseGlobal = globalThis as unknown as { __sseBroadcast?: (data: unknown) => void };
+  if (sseGlobal.__sseBroadcast) {
+    sseGlobal.__sseBroadcast(payload);
+  }
 
   return NextResponse.json({ ok: true });
 }

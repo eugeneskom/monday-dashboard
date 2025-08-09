@@ -9,8 +9,9 @@ function broadcast(data: unknown) {
   for (const { send } of clients.values()) send(data);
 }
 
-// Expose a broadcaster for other routes (monday)
-export const SSE = { broadcast };
+// Store broadcaster in global for other routes to access
+const sseGlobal = globalThis as unknown as { __sseBroadcast?: (data: unknown) => void };
+sseGlobal.__sseBroadcast = broadcast;
 
 export async function GET(req: NextRequest) {
   const encoder = new TextEncoder();

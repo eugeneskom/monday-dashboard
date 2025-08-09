@@ -83,21 +83,20 @@ export default function TaskSummaryWidget({
     };
   }
 
-  const seenIds = new Set<string>(); // To prevent counting the same task twice
+  // Type for items we process
+  type TaskLike = {
+    name?: string;
+    column_values?: { id: string; text?: string | null }[];
+    subitems?: TaskLike[];
+  };
+
   let totalTasks = 0;
   let completedTasks = 0;
   let inProgressTasks = 0;
   const statusCounts: StatusCount = {};
 
   data.forEach((board: Board) => {
-    board.items?.forEach(item => {
-      // Helper to process a single task/subtask
-      type TaskLike = {
-        name?: string;
-        column_values?: { id: string; text?: string | null }[];
-        subitems?: TaskLike[];
-      };
-
+    board.items?.forEach((item: TaskLike) => {
       const processTask = (task: TaskLike) => {
         const statusCol = task.column_values?.find(
           (col) =>
@@ -123,7 +122,7 @@ export default function TaskSummaryWidget({
         // count only subitems; do not count the parent
         item.subitems.forEach((sub) => processTask(sub));
       } else {
-        processTask(item as TaskLike);
+        processTask(item);
       }
     });
   });

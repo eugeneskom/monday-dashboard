@@ -53,6 +53,7 @@ export function useMondayWebhookLiveUpdates(options?: WebhookOptions) {
     es.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
+        // broadcast to consumers
         onBoardUpdate?.(data as WebhookEvent);
         triggerRefresh();
       } catch (err) {
