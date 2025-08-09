@@ -9,6 +9,7 @@ interface EmployeeData {
   name: string;
   salary: number;
   department?: string;
+  departments?: Set<string>; // Track all departments
   hoursWorked: number;
   projectsCount: number;
 }
@@ -46,6 +47,7 @@ const extractEmployeesFromMonday = (boards: Board[]): EmployeeData[] => {
                 name: cleanName,
                 salary: 0, // Will be set manually for salary management
                 department: board.name, // Use board name as department
+                departments: new Set([board.name]), // Track all departments
                 hoursWorked: 0,
                 projectsCount: 0
               });
@@ -55,10 +57,12 @@ const extractEmployeesFromMonday = (boards: Board[]): EmployeeData[] => {
             employee.hoursWorked += hours;
             employee.projectsCount += 1;
             
-            // If this board has a different department, mark as "Multiple"
-            if (employee.department !== board.name) {
-              employee.department = 'Multiple Departments';
-            }
+            // Add this board to the employee's departments
+            employee.departments!.add(board.name);
+            
+            // Update department display string
+            const deptArray = Array.from(employee.departments!);
+            employee.department = deptArray.join(', ');
           }
         });
       }
