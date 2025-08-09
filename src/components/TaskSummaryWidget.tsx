@@ -85,11 +85,13 @@ export default function TaskSummaryWidget({
 
   // Type for items we process
   type TaskLike = {
+    id?: string;
     name?: string;
     column_values?: { id: string; text?: string | null }[];
     subitems?: TaskLike[];
   };
 
+  const seenIds = new Set<string>(); // To prevent counting the same task twice
   let totalTasks = 0;
   let completedTasks = 0;
   let inProgressTasks = 0;
@@ -98,11 +100,11 @@ export default function TaskSummaryWidget({
   data.forEach((board: Board) => {
     board.items?.forEach((item: TaskLike) => {
       const processTask = (task: TaskLike) => {
+        if (!task.id || seenIds.has(task.id)) return; // Skip duplicates
+        seenIds.add(task.id);
+
         const statusCol = task.column_values?.find(
-          (col) =>
-            col.id === 'status' ||
-            col.id === 'status_1__1' ||
-            col.id.includes('status')
+          (col) => col.id === 'status' // pick the main status column only
         );
         if (!statusCol?.text) return;
 
